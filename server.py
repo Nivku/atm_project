@@ -5,11 +5,6 @@ from atm import  Bank
 app = Flask(__name__)
 bank = Bank.Bank()
 
-# Pre-create some accounts
-acc1 = bank.create_account(1000)
-acc2 = bank.create_account(500)
-print("Created accounts:", acc1.account_id, acc2.account_id)
-
 
 @app.route("/")
 def home():
@@ -42,6 +37,7 @@ def withdraw():
     account_id = data.get("account_id")
     amount = data.get("amount")
     result = bank.withdraw_money_from_account(account_id,amount)
+
     if result is None:
         return jsonify({"error": "Account not found"}), 404
 

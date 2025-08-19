@@ -8,6 +8,8 @@ class Account:
         return self.balance
 
     def deposit(self, amount):
+        if not isinstance(amount, (int, float)):
+            return False, "Amount must be a number"
         if amount <= 0:
             return False, "Deposit must be positive"
         self.balance += amount
@@ -21,3 +23,6 @@ class Account:
             return False, "Insufficient funds"
         self.balance -= amount
         return True, f"Withdrawal successful. "
+
+    def get_account_id(self):
+        return self.account_id
