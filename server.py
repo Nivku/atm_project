@@ -12,10 +12,10 @@ def home():
     return "ATM server is running!"
 
 
-# def run_server():
-#     app.run(port=5000, debug=False, use_reloader=False)
-#     print("ATM server started on port 8080")
-#
+def run_server():
+    app.run(port=5000, debug=False, use_reloader=False)
+    print("ATM server started on port 8080")
+
 
 
 

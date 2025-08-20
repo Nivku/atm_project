@@ -102,6 +102,7 @@ def test_withdraw_validation(atm):
 
 def test_invalid_account(atm):
     """Test getting balance and deposit/withdraw with invalid account"""
+
     invalid_account = "invalid123"
     balance = atm.get_balance(invalid_account)
     assert balance is None
