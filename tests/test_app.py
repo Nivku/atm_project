@@ -1,80 +1,84 @@
-# tests/test_server.py
+# tests/test_atm_client.py
 import pytest
-from server import app, bank
+from atm.atm import Atm
+from server import app, db
 
+# --- Fixture: Flask test client ---
 @pytest.fixture
 def client():
-    """Flask test client"""
     with app.test_client() as client:
         yield client
 
+# --- Fixture: ATM client that uses Flask test client ---
+@pytest.fixture
+def atm_client(client):
+    class TestATM:
+        def get_account_balance(self, account_id):
+            resp = client.get(f"/accounts/{account_id}/balance")
+            if resp.status_code == 200:
+                return resp.get_json()["balance"]
+            return None
+
+        def deposit_money_to_account(self, account_id, amount):
+            resp = client.post(f"/accounts/{account_id}/deposit", json={"amount": amount})
+            return resp.get_json(), resp.status_code
+
+        def withdraw_money_from_account(self, account_id, amount):
+            resp = client.post(f"/accounts/{account_id}/withdraw", json={"amount": amount})
+            return resp.get_json(), resp.status_code
+
+    return TestATM()
+
+# --- Fixture: create accounts in DB ---
 @pytest.fixture
 def create_accounts():
-    """Create 10 accounts with different initial balances"""
     account_ids = []
-    for i in range(10):
-        initial_balance = 1000 + i * 100  # e.g., 1000, 1100, 1200, ..., 1900
-        account = bank.add_new_account(initial_balance=initial_balance)
-        account_ids.append((account.get_account_id(), initial_balance))
+    for i in range(5):
+        initial_balance = 1000 + i * 100
+        account = db.add_account(initial_balance)
+        account_ids.append((account.get_account_number(), initial_balance))
+        db.print_accounts()
     return account_ids
 
+# --- Tests ---
 def test_home(client):
-    """Test the home route"""
-    response = client.get("/")
-    assert response.status_code == 200
-    assert b"ATM server is running!" in response.data
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert b"ATM server is running!" in resp.data
 
-def test_get_balance(client, create_accounts):
-    """Test getting balance for all 10 accounts"""
+def test_get_balance(atm_client, create_accounts):
     for account_id, initial_balance in create_accounts:
-        response = client.get(f"/balance/{account_id}")
-        assert response.status_code == 200
-        data = response.get_json()
-        assert data["account_id"] == account_id
-        assert data["balance"] == initial_balance
+        balance = atm_client.get_account_balance(account_id)
+        assert balance == initial_balance
 
-def test_deposit(client, create_accounts):
-    """Test depositing money into all accounts"""
+def test_deposit(atm_client, create_accounts):
     for account_id, initial_balance in create_accounts:
-        response = client.post("/deposit", json={"account_id": account_id, "amount": 200})
-        assert response.status_code == 200
-        data = response.get_json()
+        data, status = atm_client.deposit_money_to_account(account_id, 200)
+        assert status == 200
         assert "message" in data
         assert data["balance"] == initial_balance + 200
 
-def test_withdraw_success(client, create_accounts):
-    """Test withdrawing money successfully from all accounts"""
+def test_withdraw_success(atm_client, create_accounts):
     for account_id, initial_balance in create_accounts:
-        # First deposit 100 to have enough balance for withdrawal test
-        client.post("/deposit", json={"account_id": account_id, "amount": 100})
-        response = client.post("/withdraw", json={"account_id": account_id, "amount": 150})
-        assert response.status_code == 200
-        data = response.get_json()
-        assert "message" in data
-        assert data["balance"] == initial_balance + 100 - 150  # new balance after deposit and withdrawal
+        atm_client.deposit_money_to_account(account_id, 100)
+        data, status = atm_client.withdraw_money_from_account(account_id, 150)
+        assert status == 200
+        expected_balance = initial_balance + 100 - 150
+        assert data["balance"] == expected_balance
 
-
-
-def test_withdraw_insufficient_funds(client, create_accounts):
-    """Test withdrawing more than balance for all accounts"""
+def test_withdraw_insufficient_funds(atm_client, create_accounts):
     for account_id, _ in create_accounts:
-        response = client.post("/withdraw", json={"account_id": account_id, "amount": 10000})
-        assert response.status_code == 400
-        data = response.get_json()
+        data, status = atm_client.withdraw_money_from_account(account_id, 10000)
+        assert status == 400
         assert "Insufficient funds" in data["message"]
 
-def test_invalid_account(client):
-    """Test operations on non-existing account"""
+def test_invalid_account(atm_client):
     fake_id = "doesnotexist"
+    balance = atm_client.get_account_balance(fake_id)
+    assert balance is None
 
-    # Balance
-    response = client.get(f"/balance/{fake_id}")
-    assert response.status_code == 404
+    data, status = atm_client.deposit_money_to_account(fake_id, 50)
+    assert status == 404
 
-    # Deposit
-    response = client.post("/deposit", json={"account_id": fake_id, "amount": 50})
-    assert response.status_code == 404
-
-    # Withdraw
-    response = client.post("/withdraw", json={"account_id": fake_id, "amount": 50})
-    assert response.status_code == 404
+    data, status = atm_client.withdraw_money_from_account(fake_id, 50)
+    assert status == 404

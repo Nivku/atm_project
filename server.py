@@ -1,49 +1,21 @@
 # server.py
 from flask import Flask, request, jsonify
-from atm import  Bank
+from routes.accounts_route import accounts_router
 
 app = Flask(__name__)
-bank = Bank.Bank()
+
+
+app.register_blueprint(accounts_router, url_prefix="/accounts"  )
 
 
 @app.route("/")
 def home():
     return "ATM server is running!"
 
-@app.route("/balance/<account_id>", methods=["GET"])
-def get_balance(account_id):
-    balance = bank.get_account_balance(account_id)
-    if not balance:
-        return jsonify({"error": "Account not found"}), 404
-    return jsonify({"account_id": account_id, "balance": balance})
 
-@app.route("/deposit", methods=["POST"])
-def deposit():
-    data = request.json
-    account_id = data.get("account_id")
-    amount = data.get("amount")
-    result = bank.deposit_money_to_account(account_id,amount)
 
-    if result is  None:
-        return jsonify({"error": "Account not found"}), 404
+def run_server():
+    app.run(port=5000, debug=False, use_reloader=False)
+    print("ATM server started on port 5000")
 
-    success, msg = result[0],result[1]
-    status = 200 if success else 400
-    return jsonify({"message": msg, "balance": bank.get_account_balance(account_id)}), status
 
-@app.route("/withdraw", methods=["POST"])
-def withdraw():
-    data = request.json
-    account_id = data.get("account_id")
-    amount = data.get("amount")
-    result = bank.withdraw_money_from_account(account_id,amount)
-
-    if result is None:
-        return jsonify({"error": "Account not found"}), 404
-
-    success, msg = result[0], result[1]
-    status = 200 if success else 400
-    return jsonify({"message": msg, "balance": bank.get_account_balance(account_id)}), status
-
-if __name__ == "__main__":
-    app.run(debug=True)
