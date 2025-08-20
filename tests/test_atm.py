@@ -15,9 +15,10 @@ with open(db_path, "r") as f:
     data = json.load(f)
 accounts = data.get("accounts", [])[:5]  # first 5 accounts
 
+
 @pytest.fixture(scope="session", autouse=True)
 def run_server():
-
+    """Run the server for the entire test suite."""
     proc = multiprocessing.Process(target=server.run_server)
     proc.start()
     # Give server time to start
@@ -26,20 +27,25 @@ def run_server():
     proc.terminate()
     proc.join()
 
+
 @pytest.fixture
 def atm():
+    """Return a new ATM instance for each test."""
     return Atm(server=SERVER_URL)
 
-def test_get_balance(atm):
 
+def test_get_balance(atm):
+    """Test getting valid balance"""
     for acc in accounts:
-        balance = atm.get_account_balance(acc["Account_Number"])
+        balance = atm.get_balance(acc["Account_Number"])
         assert balance == acc["Balance"]
 
+
 def test_deposit(atm):
+    """Test depositing valid amount"""
     for acc in accounts:
         deposit_amount = 100
-        data, status = atm.deposit_money_to_account(acc["Account_Number"], deposit_amount)
+        data, status = atm.deposit(acc["Account_Number"], deposit_amount)
         assert status == 200
 
         # update local account balance for subsequent tests
@@ -47,58 +53,61 @@ def test_deposit(atm):
 
         assert data["balance"] == acc["Balance"]
 
+
 def test_withdraw_success(atm):
+    """Test withdrawing valid amount"""
     for acc in accounts:
         deposit_amount = 200
-        atm.deposit_money_to_account(acc["Account_Number"], deposit_amount)
+        atm.deposit(acc["Account_Number"], deposit_amount)
         acc["Balance"] += deposit_amount
 
         withdraw_amount = 150
-        data, status = atm.withdraw_money_from_account(acc["Account_Number"], withdraw_amount)
+        data, status = atm.withdraw(acc["Account_Number"], withdraw_amount)
         assert status == 200
         acc["Balance"] -= withdraw_amount
         assert data["balance"] == acc["Balance"]
 
 
-
-
-
 def test_withdraw_insufficient_funds(atm):
+    """Test withdrawing more than available balance"""
     for acc in accounts:
         large_amount = 10_000_000
-        data, status = atm.withdraw_money_from_account(acc["Account_Number"], large_amount)
+        data, status = atm.withdraw(acc["Account_Number"], large_amount)
         assert status == 400
 
 
 def test_deposit_validation(atm):
+    """Test depositing and withdrawing with invalid inputs"""
     for acc in accounts:
         # Deposit negative amount
-        data, status = atm.deposit_money_to_account(acc["Account_Number"], -100)
+        data, status = atm.deposit(acc["Account_Number"], -100)
         assert status == 400
 
         # Deposit non-numeric amount
-        data, status = atm.deposit_money_to_account(acc["Account_Number"], "abc")
+        data, status = atm.deposit(acc["Account_Number"], "abc")
         assert status == 400
 
+
 def test_withdraw_validation(atm):
+    """Test depositing and withdrawing with invalid inputs"""
     for acc in accounts:
         # Withdraw negative amount
-        data, status = atm.withdraw_money_from_account(acc["Account_Number"], -50)
+        data, status = atm.withdraw(acc["Account_Number"], -50)
         assert status == 400
 
         # Withdraw non-numeric amount
-        data, status = atm.withdraw_money_from_account(acc["Account_Number"], "xyz")
+        data, status = atm.withdraw(acc["Account_Number"], "xyz")
         assert status == 400
 
 
-
 def test_invalid_account(atm):
+    """Test getting balance and deposit/withdraw with invalid account"""
     invalid_account = "invalid123"
-    balance = atm.get_account_balance(invalid_account)
+    balance = atm.get_balance(invalid_account)
     assert balance is None
 
-    data, status = atm.deposit_money_to_account(invalid_account, 100)
+    data, status = atm.deposit(invalid_account, 100)
     assert status == 404
 
-    data, status = atm.withdraw_money_from_account(invalid_account, 100)
+    data, status = atm.withdraw(invalid_account, 100)
     assert status == 404

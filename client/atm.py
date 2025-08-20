@@ -9,7 +9,7 @@ class Atm:
         self.server_url = server
 
 
-    def get_account_balance(self, account_number):
+    def get_balance(self, account_number):
         """
         Retrieve the balance of a specified account from the server.
 
@@ -31,7 +31,7 @@ class Atm:
         return None
     
 
-    def deposit_money_to_account(self, account_number, amount):
+    def deposit(self, account_number, amount):
         """
         Deposit money into a specified account.
 
@@ -62,7 +62,7 @@ class Atm:
 
 
 
-    def withdraw_money_from_account(self, account_number, amount):
+    def withdraw(self, account_number, amount):
         """
         Withdraw money from a specified account.
 

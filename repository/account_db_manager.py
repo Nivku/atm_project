@@ -2,7 +2,7 @@ import json
 import shortuuid
 import os
 
-class AccountDbManager:
+class AccountsDbManager:
     def __init__(self, json_file= os.path.join(os.path.dirname(__file__), "..", "data", "accounts.json")):
         """
         Initialize Bank.
@@ -42,6 +42,7 @@ class AccountDbManager:
             return None
 
     def update_account(self, account_number, new_balance):
+        """Update an account's balance""""'"
         if account_number in self.accounts:
             self.accounts[account_number] = new_balance
             return True
@@ -50,7 +51,7 @@ class AccountDbManager:
 
 
     def print_accounts(self):
-        """Print all accounts in the bank"""
+        """Print all accounts in the db"""
         for account_number,balance in self.accounts:
             print(f"Account Number: {account_number}, Balance: {balance}")
 
