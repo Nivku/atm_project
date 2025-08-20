@@ -7,7 +7,7 @@ import server
 import time
 import json
 
-SERVER_URL = "http://127.0.0.1:5000"
+SERVER_URL = "https://atm-project-812779890687.me-west1.run.app"
 
 # Load accounts from JSON once for test reference
 db_path = os.path.join(os.path.dirname(__file__), "..", "data", "accounts.json")
@@ -16,16 +16,6 @@ with open(db_path, "r") as f:
 accounts = data.get("accounts", [])[:5]  # first 5 accounts
 
 
-@pytest.fixture(scope="session", autouse=True)
-def run_server():
-    """Run the server for the entire test suite."""
-    proc = multiprocessing.Process(target=server.run_server)
-    proc.start()
-    # Give server time to start
-    time.sleep(1)
-    yield
-    proc.terminate()
-    proc.join()
 
 
 @pytest.fixture
