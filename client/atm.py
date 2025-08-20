@@ -1,4 +1,6 @@
 import requests
+from http import HTTPStatus
+
 
 class Atm:
     def __init__(self, server):
@@ -26,7 +28,7 @@ class Atm:
         
         url = f"{self.server_url}/accounts/{account_number}/balance"
         response = requests.get(url)
-        if response.status_code == 200:
+        if response.status_code == HTTPStatus.OK:
             print(f"Account balance for account {account_number}: {response.json()['balance']}")
             return response.json()["balance"]
         else:
@@ -58,7 +60,7 @@ class Atm:
         """
         url = f"{self.server_url}/accounts/{account_number}/deposit"
         response = requests.post(url, json={"amount": amount})
-        if response.status_code == 404:
+        if response.status_code == HTTPStatus.NOT_FOUND:
             print(response.json()["error"])
         else:
             print(response.json()["message"])
@@ -89,7 +91,7 @@ class Atm:
         """
         url = f"{self.server_url}/accounts/{account_number}/withdraw"
         response = requests.post(url, json={"amount": amount})
-        if response.status_code == 404:
+        if response.status_code == HTTPStatus.NOT_FOUND:
             print(response.json()["error"])
         else:
             print(response.json()["message"])
