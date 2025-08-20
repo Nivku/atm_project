@@ -37,6 +37,7 @@ class AccountService:
                  - If account doesn't exist: (None, None)
                  - If amount is invalid: (False, error message)
         """
+
         account = self.account_db.get_account(account_number)
         if not account:
             return None

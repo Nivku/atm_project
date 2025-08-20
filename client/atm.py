@@ -1,7 +1,7 @@
 import requests
 
 class Atm:
-    def __init__(self, server=None):
+    def __init__(self, server):
         """
         Initialize Bank.
         Load accounts from JSON file if provided.
@@ -27,7 +27,11 @@ class Atm:
         url = f"{self.server_url}/accounts/{account_number}/balance"
         response = requests.get(url)
         if response.status_code == 200:
+            print(f"Account balance for account {account_number}: {response.json()['balance']}")
             return response.json()["balance"]
+        else:
+            print(f"Account not found {account_number}. Status code: {response.status_code}")
+
         return None
     
 
