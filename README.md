@@ -79,14 +79,14 @@ Since it runs and receives requests and the database is local, this is something
 ## ATM Chatbot
 
 I created simple command-line ATM chatbot that interacts with a remote server to manage bank accounts.
-You can view balances, deposit, withdraw, and list of available accounts on the server. this is not part
-of the work and I created it to make it easy to use the API of the `Atm`.
+You can view balances, deposit, withdraw, and list of available accounts (to pick account number) on the server. this is not part
+of the work and I created it to make it easy to use the `Atm` Api and to see the workflow.
 
 ---
 
 ## Features
 
-- List all account IDs
+- List all Account_Number
 - Check balance for a specific account
 - Deposit money into an account
 - Withdraw money from an account
