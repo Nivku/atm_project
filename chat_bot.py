@@ -80,6 +80,14 @@ def chatbot():
 
         else:
             print("Bot: Unknown command.")
+            print("Available commands:")
+            print(" show accounts      -> list all account Account_Numbers")
+            print(" balance <account_number>       -> show balance of account")
+            print(" deposit <account_number> <amount> -> deposit money")
+            print(" withdraw <account_number> <amount> -> withdraw money")
+            print(" exit               -> quit")
+            print()
+
 
 if __name__ == "__main__":
     chatbot()
