@@ -90,7 +90,7 @@ Since it runs and receives requests and the database is local, this is something
 
 I created simple command-line ATM chatbot that interacts with a remote server to manage bank accounts.
 You can view balances, deposit, withdraw, and list of available accounts (to pick account number) on the server. this is not part
-of the work and I created it to make it easy to use the `Atm` Api and to see the workflow.
+of the work (It not makes sense to see the users of db as a user) and I created it to make it easy to use the `Atm` Api and to see the workflow.
 
 ---
 
